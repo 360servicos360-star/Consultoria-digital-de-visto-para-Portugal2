@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Visto Portugal: demo ao vivo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{background:#eceef3;font-family:Raleway,"Segoe UI",system-ui,sans-serif;color:#1d1810;overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+button:focus-visible,[tabindex]:focus-visible,input:focus-visible{outline:2px solid #e3b04b;outline-offset:2px}
+svg.i{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* ---------- layout ---------- */
+.stage{--actionsH:92px;height:100vh;height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:12px 0}
+.phone{position:relative;width:min(392px,100vw);height:min(800px,calc(100vh - var(--actionsH) - 24px));height:min(800px,calc(100dvh - var(--actionsH) - 24px));background:var(--bg);border:8px solid #1b2a5e;border-radius:38px;overflow:hidden;box-shadow:0 20px 50px rgba(20,30,70,.28);color:var(--text)}
+.phone[data-theme="dark"]{--bg:#0f0d0b;--surface:#1a1713;--surface2:#262119;--text:#f2ece0;--muted:#a0978a;--gold:#e3b04b;--gold-ink:#1a1405;--line:#2f2a21;--hero1:#2a2116;--hero2:#0f0d0b}
+.phone[data-theme="light"]{--bg:#f6f1e7;--surface:#fffdf8;--surface2:#efe8d8;--text:#1d1810;--muted:#6f6657;--gold:#b0780f;--gold-ink:#fff;--line:#e0d6c0;--hero1:#e8dcc2;--hero2:#f6f1e7}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:20px;background:#1b2a5e;border-radius:0 0 14px 14px;z-index:30}
+.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth;scrollbar-width:none}
+.screen::-webkit-scrollbar{display:none}
+
+@media (max-width:520px){
+  .stage{padding:0;gap:0;justify-content:flex-start}
+  .phone{width:100vw;height:calc(100vh - var(--actionsH));height:calc(100dvh - var(--actionsH));border:0;border-radius:0;box-shadow:none}
+  .notch{display:none}
+}
+
+/* ---------- header ---------- */
+.top{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:22px 16px 12px;background:var(--bg);border-bottom:1px solid var(--line)}
+.brand{font-family:"Playfair Display",Georgia,serif;font-weight:700;font-size:19px;line-height:1.05;color:var(--gold)}
+.tools{display:flex;gap:6px}
+.tool{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:21px;color:var(--gold)}
+.tool:active{background:var(--surface2)}
+
+/* ---------- hero ---------- */
+.hero{position:relative;height:372px;background:
+  repeating-linear-gradient(115deg,rgba(255,255,255,.025) 0 2px,transparent 2px 22px),
+  radial-gradient(120% 90% at 50% 0%,var(--hero1),var(--hero2));overflow:hidden}
+.emblem{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:132px;height:132px;color:var(--gold)}
+.stamp-ring{transform-origin:75px 75px;animation:spin 60s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.word{position:absolute;left:0;right:0;top:150px;text-align:center;font-family:"Playfair Display",Georgia,serif;color:var(--gold);opacity:.9}
+.word b{display:block;font-size:46px;font-weight:600;letter-spacing:.14em;line-height:1;padding-left:.14em}
+.word span{display:block;font-size:17px;letter-spacing:.42em;margin-top:6px;padding-left:.42em;opacity:.8}
+.hero-cta{position:absolute;left:16px;right:16px;bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.hero-line{font-size:13px;line-height:1.4;color:var(--text);max-width:160px;font-weight:600}
+.price-btn{background:var(--gold);color:var(--gold-ink);font-weight:700;font-size:13px;padding:10px 14px;border-radius:999px;white-space:nowrap}
+
+/* ---------- search + chips ---------- */
+.searchwrap{margin:18px 16px 12px;display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:0 14px;height:50px;color:var(--muted)}
+.searchwrap input{flex:1;min-width:0;background:none;border:0;outline:none;color:var(--text);font:inherit;font-size:14px;height:100%}
+.searchwrap input::placeholder{color:var(--muted)}
+.clear{display:none;font-size:18px}
+.searchwrap.has .clear{display:grid}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;display:flex;align-items:center;gap:6px;background:var(--surface2);color:var(--text);padding:10px 15px;border-radius:999px;font-size:13px;font-weight:600;border:1px solid var(--line)}
+.chip[aria-pressed="true"]{background:var(--gold);color:var(--gold-ink);border-color:var(--gold)}
+.chips.small{margin-top:8px}
+.chips.small .chip{background:transparent;padding:7px 13px;font-size:12px;color:var(--muted)}
+.chips.small .chip[aria-pressed="true"]{background:var(--surface2);color:var(--gold);border-color:var(--gold)}
+
+/* ---------- list ---------- */
+.sec{padding:20px 16px 0}
+.sec h2{font-family:"Playfair Display",Georgia,serif;font-size:23px;margin:0;display:flex;align-items:center;gap:8px;color:var(--text)}
+.sec h2 .i{color:var(--gold);font-size:22px}
+.sec .sub{font-size:12px;color:var(--muted);margin:3px 0 12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;text-align:left;cursor:pointer;transition:transform .15s}
+.card:active{transform:scale(.98)}
+.vis{position:relative;height:96px;display:grid;place-items:center;color:var(--gold);font-size:38px;background:
+  repeating-linear-gradient(135deg,rgba(255,255,255,.04) 0 2px,transparent 2px 14px),
+  linear-gradient(145deg,var(--g1),var(--g2))}
+.tag{position:absolute;left:8px;top:8px;font-size:10.5px;font-weight:700;background:rgba(0,0,0,.55);color:#f2ece0;padding:3px 8px;border-radius:999px}
+.tag.alert{background:#b3261e;color:#fff}
+.lockb{position:absolute;right:8px;top:8px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.55);color:#f2ece0;display:grid;place-items:center;font-size:13px}
+.card.locked .vis svg.big{opacity:.45}
+.cbody{padding:10px 11px 11px;display:flex;flex-direction:column;gap:5px;flex:1}
+.cbody h3{margin:0;font-size:13.5px;line-height:1.25;font-weight:700}
+.cbody p{margin:0;font-size:11.5px;line-height:1.4;color:var(--muted);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.crow{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:6px}
+.meta{font-size:10.5px;color:var(--muted);font-weight:600}
+.add{width:32px;height:32px;border-radius:50%;background:var(--gold);color:var(--gold-ink);display:grid;place-items:center;font-size:17px;transition:transform .2s}
+.add:active{transform:scale(.9)}
+.add.on{background:#2e9e5b;color:#fff}
+.card.locked .add{background:var(--surface2);color:var(--muted)}
+.empty{margin:30px 16px;padding:26px 18px;text-align:center;background:var(--surface);border:1px dashed var(--line);border-radius:16px;font-size:14px;line-height:1.5}
+.empty b{display:block;font-family:"Playfair Display",Georgia,serif;font-size:18px;margin-bottom:6px}
+.empty button{margin-top:12px;background:var(--gold);color:var(--gold-ink);font-weight:700;font-size:13px;padding:9px 16px;border-radius:999px}
+.endcta{margin:26px 16px 0;padding:20px 18px;border-radius:18px;background:linear-gradient(145deg,var(--hero1),var(--surface));border:1px solid var(--gold)}
+.endcta h2{font-family:"Playfair Display",Georgia,serif;margin:0 0 6px;font-size:21px}
+.endcta p{margin:0 0 14px;font-size:13px;line-height:1.5;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--gold);color:var(--gold-ink);font-weight:700;font-size:14px;padding:13px 18px;border-radius:14px;width:100%}
+.btn.ghost{background:var(--surface2);color:var(--text);margin-top:8px}
+.btn.wa{background:#25d366;color:#fff}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+
+/* ---------- floating ---------- */
+.fab{position:absolute;right:14px;width:54px;height:54px;border-radius:50%;display:grid;place-items:center;font-size:26px;box-shadow:0 6px 16px rgba(0,0,0,.4);z-index:20}
+.fab.wa{bottom:134px;background:#25d366;color:#fff}
+.fab.proc{bottom:70px;background:var(--gold);color:var(--gold-ink)}
+.badge{position:absolute;top:-3px;right:-3px;min-width:20px;height:20px;border-radius:10px;background:#d6361f;color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;padding:0 5px}
+.livepill{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);display:flex;align-items:center;gap:7px;background:#f0a022;color:#1a1405;font-weight:700;font-size:13px;padding:9px 18px;border-radius:999px;z-index:20;box-shadow:0 4px 12px rgba(0,0,0,.35);pointer-events:none}
+.livepill .dot{width:8px;height:8px;border-radius:50%;background:#1a1405;animation:pulse 1.8s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.25}}
+
+/* ---------- sheet ---------- */
+.backdrop{position:absolute;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .25s;z-index:40}
+.backdrop.open{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;bottom:0;max-height:88%;background:var(--surface);border-radius:24px 24px 0 0;z-index:50;transform:translateY(102%);transition:transform .3s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.sheet.open{transform:translateY(0)}
+.grab{width:42px;height:4px;background:var(--line);border-radius:2px;margin:9px auto 0;flex:none}
+.sh-head{display:flex;align-items:center;justify-content:space-between;padding:8px 18px 0;flex:none}
+.sh-head .tag{position:static;background:var(--surface2);color:var(--gold)}
+.sh-head .tag.alert{background:#b3261e;color:#fff}
+.xbtn{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:20px;color:var(--muted)}
+.sh-body{overflow-y:auto;padding:6px 18px 24px}
+.sh-body h2{font-family:"Playfair Display",Georgia,serif;font-size:24px;line-height:1.2;margin:4px 0 8px}
+.lead{font-size:14px;line-height:1.55;color:var(--muted);margin:0 0 12px}
+.pts{list-style:none;margin:0 0 14px;padding:0}
+.pts li{display:flex;gap:10px;font-size:14px;line-height:1.5;padding:9px 0;border-bottom:1px solid var(--line)}
+.pts li .i{color:var(--gold);margin-top:3px;font-size:15px}
+.pts li.fade{opacity:.35;filter:blur(2px);user-select:none}
+.note{background:rgba(224,165,38,.14);border-left:3px solid var(--gold);padding:10px 12px;border-radius:0 10px 10px 0;font-size:13px;line-height:1.5;margin:0 0 14px}
+.note.red{background:rgba(179,38,30,.15);border-color:#d6361f}
+.lockbox{text-align:center;padding:16px;border:1px dashed var(--gold);border-radius:14px;margin-bottom:14px;font-size:13.5px;line-height:1.5}
+.price{font-family:"Playfair Display",Georgia,serif;font-size:38px;color:var(--gold);line-height:1;margin:2px 0 4px}
+.incl{list-style:none;padding:0;margin:12px 0 16px}
+.incl li{display:flex;gap:10px;font-size:14px;padding:6px 0;line-height:1.4}
+.incl .i{color:var(--gold);margin-top:2px}
+
+/* process */
+.ringwrap{display:flex;align-items:center;gap:16px;margin:8px 0 16px}
+.ring{width:92px;height:92px;flex:none;position:relative}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .pct{position:absolute;inset:0;display:grid;place-items:center;font-family:"Playfair Display",Georgia,serif;font-size:22px;font-weight:700}
+.ringwrap p{margin:0;font-size:13.5px;line-height:1.5;color:var(--muted)}
+.ringwrap p b{color:var(--text)}
+.donelist{list-style:none;margin:0 0 14px;padding:0}
+.donelist li{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface2);border-radius:12px;margin-bottom:6px;font-size:13.5px;font-weight:600}
+.donelist li .i{color:#2e9e5b;font-size:17px}
+.next{padding:12px 14px;border:1px solid var(--gold);border-radius:14px;margin-bottom:14px;font-size:13.5px;line-height:1.5}
+.next b{display:block;font-family:"Playfair Display",Georgia,serif;font-size:16px;margin-bottom:2px}
+
+/* checklist */
+.bar{height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;margin:6px 0 4px}
+.bar i{display:block;height:100%;background:var(--gold);width:0;transition:width .3s}
+.gl{font-size:12px;font-weight:700;color:var(--gold);margin:14px 0 4px}
+.ck{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px}
+.box{width:24px;height:24px;border-radius:7px;border:2px solid var(--muted);display:grid;place-items:center;flex:none;color:transparent;font-size:15px;transition:.15s}
+.ck[aria-pressed="true"] .box{background:#2e9e5b;border-color:#2e9e5b;color:#fff}
+.ck[aria-pressed="true"] span.t{color:var(--muted);text-decoration:line-through}
+
+/* scheduler */
+.steps{display:flex;gap:6px;margin:4px 0 14px}
+.steps i{flex:1;height:4px;border-radius:2px;background:var(--surface2)}
+.steps i.on{background:var(--gold)}
+.opts{display:grid;gap:8px;margin-bottom:14px}
+.opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:13px 14px;border:1.5px solid var(--line);border-radius:14px;font-size:14px;font-weight:600;background:var(--surface2)}
+.opt .i{font-size:22px;color:var(--gold)}
+.opt small{display:block;font-weight:500;color:var(--muted);font-size:12px;margin-top:1px}
+.opt[aria-pressed="true"]{border-color:var(--gold);background:rgba(227,176,75,.12)}
+.dgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.dgrid .opt{flex-direction:column;gap:2px;text-align:center;padding:10px 4px;font-size:13px}
+.face{width:150px;height:150px;border-radius:50%;margin:10px auto 16px;border:3px solid var(--gold);position:relative;overflow:hidden;display:grid;place-items:center;color:var(--gold);font-size:56px;background:var(--surface2)}
+.face.scan::after{content:"";position:absolute;left:0;right:0;height:3px;background:var(--gold);box-shadow:0 0 14px var(--gold);animation:scan 1.1s ease-in-out infinite alternate}
+@keyframes scan{from{top:8%}to{top:88%}}
+.face.ok{border-color:#2e9e5b;color:#2e9e5b}
+.ticket{border:1px solid var(--gold);border-radius:16px;padding:16px;margin-bottom:14px;background:var(--surface2)}
+.ticket .code{font-family:"Playfair Display",Georgia,serif;font-size:28px;color:var(--gold);margin:2px 0 8px}
+.ticket div{font-size:13.5px;line-height:1.6}
+
+/* toast */
+.toast{position:absolute;top:62px;left:50%;transform:translate(-50%,-14px);background:var(--text);color:var(--bg);font-size:13px;font-weight:600;padding:10px 16px;border-radius:999px;z-index:60;opacity:0;pointer-events:none;transition:.25s;max-width:86%;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- action row ---------- */
+.actions{--ah:var(--actionsH);display:flex;gap:10px;width:min(392px,100vw);padding:0 10px;height:calc(var(--actionsH) - 12px)}
+.act{flex:1;background:#fff;border-radius:14px;box-shadow:0 2px 10px rgba(20,30,70,.12);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-size:12px;font-weight:700;color:#1d1810;padding:6px}
+.act .i{font-size:24px;color:#c58a14}
+.act:active{transform:scale(.97)}
+@media (max-width:520px){.actions{padding:8px 10px 0;height:var(--actionsH);background:#eceef3}}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="phone" id="phone" data-theme="dark">
+    <div class="notch"></div>
+
+    <div class="screen" id="screen">
+      <header class="top">
+        <div class="brand">Visto<br>Portugal</div>
+        <div class="tools">
+          <button class="tool" id="themeBtn" aria-label="Mudar entre tema escuro e claro"></button>
+          <button class="tool" id="chatBtn" aria-label="Falar no WhatsApp"></button>
+          <button class="tool" id="srcBtn" aria-label="Fontes oficiais e aviso"></button>
+        </div>
+      </header>
+
+      <section class="hero" aria-label="Apresentação">
+        <svg class="emblem" viewBox="0 0 150 150" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+          <g class="stamp-ring"><circle cx="75" cy="75" r="70" stroke-dasharray="3 6"/></g>
+          <circle cx="75" cy="75" r="56"/>
+          <ellipse cx="75" cy="75" rx="22" ry="56"/>
+          <ellipse cx="75" cy="75" rx="42" ry="56"/>
+          <path d="M19 75h112M75 19v112M30 48h90M30 102h90"/>
+          <circle cx="75" cy="48" r="5" fill="currentColor"/>
+          <circle cx="104" cy="75" r="5" fill="currentColor"/>
+          <circle cx="58" cy="102" r="5" fill="currentColor"/>
+        </svg>
+        <div class="word"><b>VISTO</b><span>PORTUGAL</span></div>
+        <div class="hero-cta">
+          <div class="hero-line">Faz o teu visto como um consultor, do passaporte à entrega.</div>
+          <button class="price-btn" id="heroBtn">Guia completo: 35.000 Kz</button>
+        </div>
+      </section>
+
+      <div class="searchwrap" id="searchWrap">
+        <svg class="i" viewBox="0 0 24 24" id="searchIco"></svg>
+        <input id="q" type="search" placeholder="Pesquisar passos ou documentos..." aria-label="Pesquisar passos ou documentos" autocomplete="off">
+        <button class="clear" id="clearQ" aria-label="Limpar pesquisa"></button>
+      </div>
+
+      <div class="chips" id="modChips" role="group" aria-label="Módulos"></div>
+      <div class="chips small" id="typeChips" role="group" aria-label="Tipo de conteúdo"></div>
+
+      <main id="list"></main>
+
+      <section class="endcta">
+        <h2>Gostaste da demo?</h2>
+        <p>O guia completo tem os 11 módulos, a checklist mestre, o cronograma, 4 modelos de cartas e a lista de erros que levam a recusa.</p>
+        <button class="btn" id="endBtn">Quero o guia completo: 35.000 Kz</button>
+      </section>
+      <div style="height:150px"></div>
+    </div>
+
+    <button class="fab wa" id="waFab" aria-label="Falar no WhatsApp"></button>
+    <button class="fab proc" id="procFab" aria-label="Abrir o meu processo"><span id="procIco"></span><span class="badge" id="badge">0</span></button>
+    <div class="livepill"><span class="dot"></span>Demo ao vivo</div>
+
+    <div class="backdrop" id="backdrop"></div>
+    <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Detalhes" tabindex="-1">
+      <div class="grab"></div>
+      <div class="sh-head"><span id="shTag"></span><button class="xbtn" id="shClose" aria-label="Fechar"></button></div>
+      <div class="sh-body" id="shBody"></div>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+
+  <nav class="actions" aria-label="Experimentar a demo">
+    <button class="act" id="actSched"></button>
+    <button class="act" id="actMods"></button>
+    <button class="act" id="actCheck"></button>
+  </nav>
+</div>
+
+<script>
+/* ============ CONFIGURAÇÃO ============ */
+// Põe aqui o teu número de WhatsApp com indicativo, sem + nem espaços. Ex.: "244900000000"
+const WHATSAPP = "";
+const PRICE = "35.000 Kz";
+
+/* ============ ÍCONES ============ */
+const P = {
+  passport:'<rect x="5" y="3" width="14" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M9 16h6"/>',
+  layers:'<path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/>',
+  cap:'<path d="M2 9l10-5 10 5-10 5L2 9z"/><path d="M6 11.5V16c0 1.5 3 3 6 3s6-1.5 6-3v-4.5"/>',
+  brief:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2"/><path d="M3 13h18"/>',
+  form:'<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/><path d="M9 13h7M9 17h7"/>',
+  folder:'<path d="M3 6a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>',
+  plane:'<path d="M21 3L3 10.5l6 2.5 2.5 6L21 3z"/><path d="M9 13l5-5"/>',
+  cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/>',
+  redo:'<path d="M20 12a8 8 0 10-2.3 5.7"/><path d="M20 5v5h-5"/>',
+  lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/>',
+  check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  moon:'<path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/>',
+  chat:'<path d="M21 12a8 8 0 01-11.6 7.1L4 20l1-4.6A8 8 0 1121 12z"/>',
+  shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  phone:'<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/>',
+  list:'<path d="M4 6h16M4 12h16M4 18h16"/>',
+  checklist:'<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/>',
+  x:'<path d="M6 6l12 12M18 6L6 18"/>',
+  face:'<path d="M4 8a2 2 0 012-2h2l1-2h6l1 2h2a2 2 0 012 2v9a2 2 0 01-2 2H6a2 2 0 01-2-2z"/><circle cx="12" cy="13" r="3.5"/>',
+  bag:'<path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 016 0v2"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>'
+};
+const ico = (n, cls='') => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${P[n]}</svg>`;
+
+/* ============ CONTEÚDO ============ */
+const MODS = [
+  {id:'pass', name:'Passaporte',          icon:'passport', g:['#3a2a12','#1b1409']},
+  {id:'tipo', name:'Tipos de visto',      icon:'layers',   g:['#1f2e3a','#10171d']},
+  {id:'sup',  name:'Estudo superior',     icon:'cap',      g:['#2c2440','#15111f']},
+  {id:'form', name:'Formação profissional',icon:'brief',   g:['#1f3a2e','#0f1d17']},
+  {id:'fmr',  name:'Formulário',          icon:'form',     g:['#3a2220','#1d1110']},
+  {id:'docs', name:'Documentos',          icon:'folder',   g:['#3a3312','#1d190a']},
+  {id:'voo',  name:'Voo',                 icon:'plane',    g:['#123a3a','#091d1d']},
+  {id:'agen', name:'Agendamento',         icon:'cal',      g:['#3a2a3a','#1d151d']},
+  {id:'fim',  name:'Depois do pedido',    icon:'redo',     g:['#3a1f1f','#1d0f0f']}
+];
+const MOD = Object.fromEntries(MODS.map(m=>[m.id,m]));
+
+const ITEMS = [
+  {id:1, mod:'pass', type:'Passo', title:'Verificar o passaporte', blurb:'Validade, páginas livres e dados iguais aos outros documentos.',
+   points:['Validade bem acima do período do visto. O ideal é sobrar 12 meses ou mais.','Pelo menos 2 páginas em branco consecutivas.','Nome, data de nascimento e número iguais ao bilhete de identidade e à certidão.','Sem páginas rasgadas nem plastificação descolada.']},
+  {id:2, mod:'pass', type:'Passo', title:'Tirar ou renovar o passaporte', blurb:'É o passo que mais atrasa processos. Começa logo.',
+   points:['Consulta nos serviços oficiais de migração os documentos e a taxa atuais.','Marca com antecedência: pode demorar semanas.','Faz cópia colorida de todas as páginas com dados e carimbos.']},
+  {id:3, mod:'pass', type:'Passo', title:'Criar a pasta "Processo Visto"', blurb:'Uma pasta física e uma digital, na ordem da checklist.',
+   points:['Original, cópia e versão digital de cada documento.','Ordem igual à da checklist mestre.','Guarda recibos e comprovativos de pagamento no mesmo sítio.']},
+
+  {id:4, mod:'tipo', type:'Passo', title:'Turismo (Schengen)', blurb:'Para visitas até 90 dias.',
+   points:['Pede reserva de alojamento, seguro, meios financeiros e programa da viagem.','Reserva de voo de ida e volta.','A taxa do visto é fixada a nível europeu. Confirma o valor atual.']},
+  {id:5, mod:'tipo', type:'Passo', title:'Estudo (mais de 90 dias)', blurb:'Visto nacional de estudo, com matrícula ou inscrição.',
+   points:['Exige aceitação ou inscrição, meios de subsistência, alojamento e seguro.','Dizer "turismo" para ficar a estudar é declaração falsa e pode dar recusa.','Começa o processo 3 meses ou mais antes das aulas.']},
+  {id:6, mod:'tipo', type:'Alerta', title:'Trabalho: não é para fazeres sozinho(a)', blurb:'No consulado de Luanda, o visto de trabalho exige autorização prévia.',
+   points:['Segundo informação publicada em 2026, só empresas em Portugal (ou advogados e solicitadores) podem pedir.','Pedidos de intermediários ou do próprio trabalhador não são aceites.','Confirma o procedimento em vigor no site do consulado.'],
+   note:'Procedimentos mudam. Confirma sempre na fonte oficial antes de agir.'},
+
+  {id:7, mod:'sup', type:'Passo', title:'Candidatura à instituição', blurb:'Escolhe cursos reconhecidos e candidata-te pelo canal oficial.',
+   points:['Confirma a instituição e o curso nos sites oficiais do ensino superior português.','Vê os prazos para estudantes internacionais.','Desconfia de quem cobra "vaga garantida".','Prepara os documentos académicos e as autenticações pedidas.']},
+  {id:8, mod:'sup', type:'Passo', title:'Aceitação e matrícula', blurb:'O visto depende deste comprovativo.', locked:true,
+   points:['Guarda a carta de aceitação e o comprovativo de matrícula.','Pede à instituição a declaração para efeitos de visto, se existir.','Respeita o prazo entre aceitação e pedido de visto.']},
+  {id:9, mod:'sup', type:'Documento', title:'Lista de documentos do visto de estudo', blurb:'A lista típica, com 11 itens para conferir.', locked:true,
+   points:['Passaporte, formulário e fotografias.','Aceitação, meios de subsistência, alojamento e seguro.','Registo criminal quando aplicável, reserva de voo e taxas.']},
+
+  {id:10, mod:'form', type:'Alerta', title:'Verificar o centro de formação', blurb:'É aqui que mais aparecem fraudes.', locked:true,
+   points:['Confirma se o centro é entidade reconhecida e o curso certificado.','Pede contrato com NIF, morada, datas, carga horária e valor.','Desconfia de "visto garantido" e de pagamentos totais sem contrato.'],
+   note:'O nome no processo é o teu. Se o documento for falso, o problema é teu.'},
+  {id:11, mod:'form', type:'Documento', title:'Contrato de inscrição', blurb:'O que deve constar para servir no pedido.', locked:true,
+   points:['Dados completos do centro e do curso.','Calendário e carga horária.','Comprovativo de pagamento da inscrição.']},
+
+  {id:12, mod:'fmr', type:'Passo', title:'Preencher o formulário nacional', blurb:'O primeiro documento que o oficial lê.', locked:true,
+   points:['Descarrega só do site oficial, na versão atual.','Dados exatamente iguais ao passaporte.','Campos que não se aplicam levam "N/A".']},
+  {id:13, mod:'fmr', type:'Alerta', title:'Campos que mais geram erros', blurb:'Nome, finalidade, morada e quem paga.', locked:true,
+   points:['Finalidade igual à do contrato ou matrícula.','Morada igual à do comprovativo de alojamento.','Declara recusas anteriores com verdade.']},
+
+  {id:14, mod:'docs', type:'Documento', title:'Meios de subsistência', blurb:'Provar que te consegues sustentar.', locked:true,
+   points:['Extratos recentes, bolsa ou declaração de apoio com provas do sponsor.','Depósitos de última hora sem explicação levantam suspeitas.','Confirma o valor de referência na lista atual.']},
+  {id:15, mod:'docs', type:'Documento', title:'Alojamento em Portugal', blurb:'Contrato, residência universitária ou declaração de acolhimento.', locked:true,
+   points:['Morada completa, período e nome do responsável.','Evita pagar muito antes de teres o visto.']},
+  {id:16, mod:'docs', type:'Documento', title:'Seguro', blurb:'Cobertura médica e repatriamento para todo o período.', locked:true,
+   points:['Apólice com o teu nome e as datas certas.','Para turismo Schengen, a cobertura mínima habitual é de 30.000 euros.']},
+  {id:17, mod:'docs', type:'Modelo', title:'Carta de motivação', blurb:'Modelo pronto para adaptares ao teu caso.', locked:true,
+   points:['Quem és, o que vais estudar e onde.','Porquê Portugal e o que farás depois do curso.','Quem paga e onde ficas alojado(a).']},
+  {id:18, mod:'docs', type:'Modelo', title:'Declaração de apoio financeiro', blurb:'Para quando é um familiar a pagar.', locked:true,
+   points:['Dados de quem apoia e do estudante.','Valor mensal e período.','Anexos: ID, rendimentos e extratos.']},
+
+  {id:19, mod:'voo', type:'Alerta', title:'Reserva, não bilhete', blurb:'Só compras o bilhete depois de teres o visto.',
+   points:['Usa uma reserva sem pagamento, ou com cancelamento gratuito, se a lista aceitar.','Nome igual ao passaporte e datas alinhadas com o início das aulas.','Não uses "reservas falsas": uma reserva tem de ser verificável.'],
+   note:'Comprar bilhete antes do visto é um dos erros mais caros.'},
+
+  {id:20, mod:'agen', type:'Passo', title:'Agendar no centro de vistos', blurb:'Online, com reconhecimento facial para maiores de 18 anos.', locked:true,
+   points:['Usa só o portal oficial da VFS Global.','Tem o passaporte à mão e a câmara ligada.','Tenta em vários dias e horários.']},
+  {id:21, mod:'agen', type:'Alerta', title:'Cuidado com intermediários', blurb:'Ninguém compra um visto. O agendamento é livre.',
+   points:['O consulado já alertou contra "angariadores" e documentos falsos.','Documento falso pode levar a recusa e a responsabilidade criminal.','Faz tu mesmo(a), com fontes oficiais.'],
+   note:'Quem promete "visto garantido" está a enganar-te.'},
+  {id:22, mod:'agen', type:'Passo', title:'No dia da entrega', blurb:'O que levar e como te comportares.', locked:true,
+   points:['Originais e cópias pela ordem da checklist.','Confirmação de agendamento e comprovativo de taxas.','Guarda o recibo com o número do processo.']},
+
+  {id:23, mod:'fim', type:'Passo', title:'Se o visto for recusado', blurb:'Ler os motivos e corrigir antes de voltar a pedir.', locked:true,
+   points:['Lê a notificação com atenção.','Informa-te sobre o procedimento de reapreciação atual.','Corrige a causa antes de repetir o pedido.']},
+  {id:24, mod:'fim', type:'Passo', title:'Chegada e autorização de residência', blurb:'Com o visto aprovado, ainda falta regularizar.', locked:true,
+   points:['Confirma o prazo do teu visto para entrar e pedir a residência.','Marca com antecedência junto da entidade competente.','Leva sempre os originais de matrícula, alojamento e seguro.']}
+];
+const FREE_COUNT = ITEMS.filter(i=>!i.locked).length;
+
+const TYPES = [{k:'all',n:'Todos'},{k:'Passo',n:'Passos'},{k:'Documento',n:'Documentos'},{k:'Modelo',n:'Modelos'},{k:'Alerta',n:'Alertas'}];
+
+const CHECK = [
+  ['Identificação',['Passaporte válido (original e cópia)','Bilhete de identidade (cópia)','Fotografias conforme as regras']],
+  ['Finalidade',['Aceitação ou contrato de inscrição','Documentos académicos autenticados','Carta de motivação']],
+  ['Dinheiro',['Extratos bancários recentes','Declaração de apoio financeiro, se aplicável']],
+  ['Estadia',['Comprovativo de alojamento','Seguro válido','Reserva de voo']],
+  ['Pedido',['Formulário preenchido e assinado','Registo criminal, se exigido','Agendamento e comprovativo de taxas']]
+];
+const CHECK_TOTAL = CHECK.reduce((a,g)=>a+g[1].length,0);
+
+/* ============ ESTADO ============ */
+const S = {mod:'all', type:'all', q:'', done:new Set(), ck:new Set(), sched:{step:1,kind:null,date:null,time:null,scan:'idle',code:null}};
+const $ = id => document.getElementById(id);
+const norm = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+
+/* ============ INICIALIZAÇÃO DE ÍCONES ============ */
+$('chatBtn').innerHTML = ico('chat');
+$('srcBtn').innerHTML = ico('shield');
+$('searchIco').innerHTML = P.search;
+$('clearQ').innerHTML = ico('x');
+$('waFab').innerHTML = ico('chat');
+$('procIco').innerHTML = ico('bag');
+$('shClose').innerHTML = ico('x');
+$('actSched').innerHTML = ico('cal') + '<span>Simular agendamento</span>';
+$('actMods').innerHTML = ico('list') + '<span>Ver módulos</span>';
+$('actCheck').innerHTML = ico('checklist') + '<span>Testar checklist</span>';
+function setThemeIcon(){ $('themeBtn').innerHTML = ico($('phone').dataset.theme==='dark'?'sun':'moon'); }
+setThemeIcon();
+
+/* ============ CHIPS ============ */
+function renderChips(){
+  $('modChips').innerHTML = [{id:'all',name:'Todos'}].concat(MODS).map(m =>
+    `<button class="chip" data-mod="${m.id}" aria-pressed="${S.mod===m.id}">${m.name}</button>`).join('');
+  $('typeChips').innerHTML = TYPES.map(t =>
+    `<button class="chip" data-type="${t.k}" aria-pressed="${S.type===t.k}">${t.n}</button>`).join('');
+}
+
+/* ============ LISTA ============ */
+function filtered(){
+  const q = norm(S.q.trim());
+  return ITEMS.filter(i =>
+    (S.mod==='all' || i.mod===S.mod) &&
+    (S.type==='all' || i.type===S.type) &&
+    (!q || norm(i.title+' '+i.blurb+' '+MOD[i.mod].name+' '+i.points.join(' ')).includes(q)));
+}
+function cardHTML(i){
+  const m = MOD[i.mod];
+  const isDone = S.done.has(i.id);
+  return `<article class="card ${i.locked?'locked':''}" data-open="${i.id}" tabindex="0" role="button" aria-label="${i.title}">
+    <div class="vis" style="--g1:${m.g[0]};--g2:${m.g[1]}">
+      ${ico(m.icon,'big')}
+      <span class="tag ${i.type==='Alerta'?'alert':''}">${i.type}</span>
+      ${i.locked?`<span class="lockb">${ico('lock')}</span>`:''}
+    </div>
+    <div class="cbody">
+      <h3>${i.title}</h3>
+      <p>${i.blurb}</p>
+      <div class="crow">
+        <span class="meta">${i.locked?'No guia completo':'Grátis na demo'}</span>
+        <button class="add ${isDone?'on':''}" data-add="${i.id}" aria-label="${i.locked?'Desbloquear':(isDone?'Desfazer':'Marcar como feito')}: ${i.title}">${ico(i.locked?'lock':(isDone?'check':'plus'))}</button>
+      </div>
+    </div>
+  </article>`;
+}
+function renderList(){
+  const items = filtered();
+  const box = $('list');
+  if(!items.length){
+    box.innerHTML = `<div class="empty"><b>Nada encontrado</b>Tenta "passaporte", "seguro" ou "agendamento", ou limpa os filtros.<br><button data-reset="1">Limpar filtros</button></div>`;
+    return;
+  }
+  const groups = MODS.filter(m => items.some(i=>i.mod===m.id));
+  box.innerHTML = groups.map(m => {
+    const its = items.filter(i=>i.mod===m.id);
+    const free = its.filter(i=>!i.locked).length;
+    return `<section class="sec" data-sec="${m.id}">
+      <h2>${ico(m.icon)}${m.name}</h2>
+      <div class="sub">${its.length} ${its.length===1?'item disponível':'itens disponíveis'}, ${free} grátis na demo</div>
+      <div class="grid">${its.map(cardHTML).join('')}</div>
+    </section>`;
+  }).join('');
+}
+function updateBadge(){ $('badge').textContent = S.done.size; }
+function refresh(){ renderChips(); renderList(); updateBadge(); }
+
+/* ============ SHEET ============ */
+let lastFocus = null;
+function openSheet(tagHTML, bodyHTML){
+  lastFocus = document.activeElement;
+  $('shTag').innerHTML = tagHTML || '';
+  $('shBody').innerHTML = bodyHTML;
+  $('shBody').scrollTop = 0;
+  $('backdrop').classList.add('open');
+  $('sheet').classList.add('open');
+  setTimeout(()=>$('shClose').focus(), 120);
+}
+function closeSheet(){
+  $('backdrop').classList.remove('open');
+  $('sheet').classList.remove('open');
+  if(lastFocus && lastFocus.focus) lastFocus.focus();
+}
+let toastT;
+function toast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+/* ============ WHATSAPP ============ */
+function wa(text){
+  if(!WHATSAPP){ toast('Define o teu número na linha WHATSAPP do código'); return; }
+  window.open('https://wa.me/'+WHATSAPP+'?text='+encodeURIComponent(text),'_blank','noopener');
+}
+const BUY_MSG = 'Olá! Quero o guia completo "Faz o teu visto como um consultor" por '+PRICE+'.';
+
+/* ============ FOLHAS ============ */
+function openItem(id){
+  const i = ITEMS.find(x=>x.id===id);
+  const isDone = S.done.has(id);
+  const tag = `<span class="tag ${i.type==='Alerta'?'alert':''}">${i.type}</span>`;
+  let pts;
+  if(i.locked){
+    pts = i.points.map((p,k)=>`<li class="${k>0?'fade':''}">${ico('check')}<span>${p}</span></li>`).join('');
+  } else {
+    pts = i.points.map(p=>`<li>${ico('check')}<span>${p}</span></li>`).join('');
+  }
+  let body = `<h2>${i.title}</h2><p class="lead">${i.blurb}</p><ul class="pts">${pts}</ul>`;
+  if(i.note && !i.locked) body += `<div class="note ${i.type==='Alerta'?'red':''}">${i.note}</div>`;
+  if(i.locked){
+    body += `<div class="lockbox">O resto deste item, com os modelos e a checklist, está no guia completo por <b>${PRICE}</b>.</div>
+             <button class="btn" data-unlock="1">Desbloquear o guia completo</button>`;
+  } else {
+    body += `<button class="btn" data-toggle="${id}">${isDone?'Feito. Desfazer':'Marcar como feito'}</button>`;
+  }
+  openSheet(tag, body);
+}
+function toggleDone(id){
+  const i = ITEMS.find(x=>x.id===id);
+  if(i.locked){ openUnlock(); return; }
+  if(S.done.has(id)){ S.done.delete(id); toast('Marcação desfeita'); }
+  else { S.done.add(id); toast('Marcado como feito'); }
+  refresh();
+}
+function openUnlock(){
+  const inc = ['11 módulos, do passaporte à chegada a Portugal','Checklist mestre para imprimir','Cronograma de 8 meses até às aulas','4 modelos de cartas e declarações','Lista dos erros que levam a recusa','Orçamento e registo de acompanhamento'];
+  openSheet('<span class="tag">Guia completo</span>',
+   `<h2>Faz o teu visto como um consultor</h2>
+    <div class="price">${PRICE}</div>
+    <p class="lead">Pagamento único. Uma consultoria cobra bem mais por fazer o mesmo.</p>
+    <ul class="incl">${inc.map(t=>`<li>${ico('check')}<span>${t}</span></li>`).join('')}</ul>
+    <button class="btn wa" data-buy="1">${ico('chat')} Pedir no WhatsApp</button>
+    <button class="btn ghost" data-close="1">Continuar a ver a demo</button>`);
+}
+function openProcess(){
+  const n = S.done.size, pct = Math.round(n/FREE_COUNT*100);
+  const C = 2*Math.PI*38, off = C*(1-n/FREE_COUNT);
+  const done = ITEMS.filter(i=>S.done.has(i.id));
+  const next = ITEMS.find(i=>!i.locked && !S.done.has(i.id));
+  const nextBox = next
+    ? `<div class="next"><b>Próximo passo</b>${next.title}<br><button class="btn ghost" data-open="${next.id}" style="margin-top:10px">Abrir</button></div>`
+    : `<div class="next"><b>Parte grátis concluída</b>O resto do processo, dos formulários ao agendamento, está no guia completo.<br><button class="btn" data-unlock="1" style="margin-top:10px">Desbloquear por ${PRICE}</button></div>`;
+  openSheet('<span class="tag">Meu processo</span>',
+   `<h2>O teu progresso</h2>
+    <div class="ringwrap">
+      <div class="ring"><svg viewBox="0 0 92 92"><circle cx="46" cy="46" r="38" fill="none" stroke="var(--surface2)" stroke-width="9"/><circle cx="46" cy="46" r="38" fill="none" stroke="var(--gold)" stroke-width="9" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${off}"/></svg><div class="pct">${pct}%</div></div>
+      <p><b>${n} de ${FREE_COUNT}</b> itens grátis concluídos. O guia completo tem ${ITEMS.length} itens e mais ferramentas.</p>
+    </div>
+    ${nextBox}
+    ${done.length?`<h3 style="font-size:14px;margin:0 0 8px">Já feito</h3><ul class="donelist">${done.map(d=>`<li>${ico('check')}${d.title}</li>`).join('')}</ul>`:'<p class="lead">Ainda não marcaste nada. Toca no "+" de um item para o marcar como feito.</p>'}`);
+}
+function openModules(){
+  openSheet('<span class="tag">Módulos</span>',
+   `<h2>Os 11 módulos do guia</h2><p class="lead">Toca num módulo para ver os itens.</p>
+    <div class="opts">${MODS.map(m=>{
+      const its = ITEMS.filter(i=>i.mod===m.id), fr = its.filter(i=>!i.locked).length;
+      return `<button class="opt" data-gomod="${m.id}">${ico(m.icon)}<span>${m.name}<small>${its.length} itens, ${fr} grátis na demo</small></span></button>`;}).join('')}</div>`);
+}
+function openChecklist(){
+  const n = S.ck.size;
+  let k = 0;
+  const groups = CHECK.map(g => `<div class="gl">${g[0]}</div>` + g[1].map(t => {
+    const idx = k++;
+    return `<button class="ck" data-ck="${idx}" aria-pressed="${S.ck.has(idx)}"><span class="box">${ico('check')}</span><span class="t">${t}</span></button>`;
+  }).join('')).join('');
+  const full = n===CHECK_TOTAL;
+  openSheet('<span class="tag">Checklist mestre</span>',
+   `<h2>A tua pasta de documentos</h2>
+    <p class="lead">Marca o que já tens. Isto é uma amostra: a lista final depende do teu visto.</p>
+    <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="${CHECK_TOTAL}" aria-valuenow="${n}"><i style="width:${n/CHECK_TOTAL*100}%"></i></div>
+    <div class="meta" style="margin-bottom:4px">${n} de ${CHECK_TOTAL} itens</div>
+    ${groups}
+    ${full?`<div class="note" style="margin-top:14px">Pasta completa. Antes de entregar, confere cada item com a lista oficial atual.</div>`:''}
+    <button class="btn" style="margin-top:16px" data-unlock="1">Quero a versão para imprimir: ${PRICE}</button>`);
+}
+function toggleCk(idx){
+  if(S.ck.has(idx)) S.ck.delete(idx); else S.ck.add(idx);
+  const y = $('shBody').scrollTop; openChecklistKeep(y);
+}
+function openChecklistKeep(y){ // re-render sem animar de novo
+  const n = S.ck.size; let k = 0;
+  const groups = CHECK.map(g => `<div class="gl">${g[0]}</div>` + g[1].map(t => {
+    const idx = k++;
+    return `<button class="ck" data-ck="${idx}" aria-pressed="${S.ck.has(idx)}"><span class="box">${ico('check')}</span><span class="t">${t}</span></button>`;
+  }).join('')).join('');
+  const full = n===CHECK_TOTAL;
+  $('shBody').innerHTML = `<h2>A tua pasta de documentos</h2>
+    <p class="lead">Marca o que já tens. Isto é uma amostra: a lista final depende do teu visto.</p>
+    <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="${CHECK_TOTAL}" aria-valuenow="${n}"><i style="width:${n/CHECK_TOTAL*100}%"></i></div>
+    <div class="meta" style="margin-bottom:4px">${n} de ${CHECK_TOTAL} itens</div>
+    ${groups}
+    ${full?`<div class="note" style="margin-top:14px">Pasta completa. Antes de entregar, confere cada item com a lista oficial atual.</div>`:''}
+    <button class="btn" style="margin-top:16px" data-unlock="1">Quero a versão para imprimir: ${PRICE}</button>`;
+  $('shBody').scrollTop = y;
+}
+function openSources(){
+  openSheet('<span class="tag">Fontes e aviso</span>',
+   `<h2>Confirma sempre na fonte oficial</h2>
+    <p class="lead">Esta demo é material educativo. Não é aconselhamento jurídico e não garante a aprovação do visto. Taxas e documentos mudam.</p>
+    <ul class="pts">
+      <li>${ico('shield')}<span>Consulado-Geral de Portugal em Luanda</span></li>
+      <li>${ico('shield')}<span>Portal de vistos do Ministério dos Negócios Estrangeiros de Portugal</span></li>
+      <li>${ico('shield')}<span>VFS Global (Portugal, Angola)</span></li>
+      <li>${ico('shield')}<span>AIMA, para a autorização de residência</span></li>
+    </ul>
+    <div class="note red">A decisão sobre o visto é sempre das autoridades portuguesas. Nunca uses documentos falsos nem pagues a quem promete "visto garantido".</div>`);
+}
+
+/* ---------- simulador de agendamento ---------- */
+function nextDays(n){
+  const out=[], d=new Date();
+  while(out.length<n){ d.setDate(d.getDate()+1); const w=d.getDay(); if(w!==0&&w!==6) out.push(new Date(d)); }
+  return out;
+}
+const fmtDay = new Intl.DateTimeFormat('pt-PT',{weekday:'short'});
+const fmtDate = new Intl.DateTimeFormat('pt-PT',{day:'numeric',month:'short'});
+const fmtLong = new Intl.DateTimeFormat('pt-PT',{weekday:'long',day:'numeric',month:'long'});
+const DAYS = nextDays(6);
+const TIMES = ['08:30','09:30','10:30','11:30'];
+const KINDS = [
+  {k:'sup',  n:'Estudo: ensino superior', d:'Confirma se há regras próprias de agendamento para o teu caso', i:'cap'},
+  {k:'prof', n:'Estudo: formação profissional', d:'Visto nacional, mais de 90 dias', i:'brief'},
+  {k:'tur',  n:'Turismo (Schengen)', d:'Até 90 dias', i:'layers'}
+];
+function openSched(reset){
+  if(reset) S.sched = {step:1,kind:null,date:null,time:null,scan:'idle',code:null};
+  if(!$('sheet').classList.contains('open')) openSheet('<span class="tag">Simulação</span>','');
+  renderSched();
+}
+function renderSched(){
+  const s = S.sched;
+  const dots = `<div class="steps" aria-label="Passo ${s.step} de 4">${[1,2,3,4].map(n=>`<i class="${n<=s.step?'on':''}"></i>`).join('')}</div>`;
+  let h = '';
+  if(s.step===1){
+    h = `<h2>Que visto vais pedir?</h2><p class="lead">Treina o agendamento aqui antes de o fazeres a sério.</p>
+      <div class="opts">${KINDS.map(k=>`<button class="opt" data-kind="${k.k}" aria-pressed="${s.kind===k.k}">${ico(k.i)}<span>${k.n}<small>${k.d}</small></span></button>`).join('')}</div>
+      <button class="btn" data-sstep="2" ${s.kind?'':'disabled'}>Continuar</button>`;
+  } else if(s.step===2){
+    h = `<h2>Escolhe o dia e a hora</h2><p class="lead">Na vida real, as vagas esgotam depressa. Tenta em vários dias e horários.</p>
+      <div class="dgrid">${DAYS.map((d,ix)=>`<button class="opt" data-date="${ix}" aria-pressed="${s.date===ix}"><span>${fmtDay.format(d).replace('.','')}</span><b>${fmtDate.format(d).replace('.','')}</b></button>`).join('')}</div>
+      <div class="dgrid">${TIMES.map(t=>`<button class="opt" data-time="${t}" aria-pressed="${s.time===t}">${t}</button>`).join('')}</div>
+      <button class="btn" data-sstep="3" ${(s.date!==null&&s.time)?'':'disabled'}>Continuar</button>
+      <button class="btn ghost" data-sstep="1">Voltar</button>`;
+  } else if(s.step===3){
+    const cls = s.scan==='scan'?'scan':(s.scan==='ok'?'ok':'');
+    h = `<h2>Reconhecimento facial</h2><p class="lead">O agendamento real exige este passo a maiores de 18 anos. Tem o passaporte à mão e usa a câmara. Aqui é só uma simulação: não usamos a tua câmara.</p>
+      <div class="face ${cls}">${ico(s.scan==='ok'?'check':'user')}</div>
+      ${s.scan==='idle'?`<button class="btn" data-sscan="1">${ico('face')} Iniciar verificação</button>`:''}
+      ${s.scan==='scan'?`<button class="btn" disabled>A verificar...</button>`:''}
+      ${s.scan==='ok'?`<button class="btn" data-sstep="4">Confirmar agendamento</button>`:''}
+      <button class="btn ghost" data-sstep="2">Voltar</button>`;
+  } else {
+    const kind = KINDS.find(k=>k.k===s.kind);
+    h = `<h2>Agendamento simulado</h2>
+      <div class="ticket"><div class="meta">Código da simulação</div><div class="code">${s.code}</div>
+        <div><b>${kind.n}</b></div><div>${fmtLong.format(DAYS[s.date])}, às ${s.time}</div></div>
+      <div class="note">Isto foi uma simulação. O agendamento real faz-se só no portal oficial da VFS Global. Guarda sempre a confirmação e o comprovativo de pagamento.</div>
+      <button class="btn" data-unlock="1">Ver o guia completo: ${PRICE}</button>
+      <button class="btn ghost" data-sreset="1">Simular outra vez</button>`;
+  }
+  $('shBody').innerHTML = dots + h;
+  $('shBody').scrollTop = 0;
+}
+function startScan(){
+  S.sched.scan = 'scan'; renderSched();
+  setTimeout(()=>{ S.sched.scan='ok'; if($('sheet').classList.contains('open')) renderSched(); }, 1800);
+}
+
+/* ============ EVENTOS ============ */
+document.addEventListener('click', e => {
+  const t = e.target;
+  let el;
+  if((el = t.closest('[data-add]'))){ e.stopPropagation(); toggleDone(+el.dataset.add); return; }
+  if((el = t.closest('[data-toggle]'))){ toggleDone(+el.dataset.toggle); openItem(+el.dataset.toggle); return; }
+  if((el = t.closest('[data-open]'))){ openItem(+el.dataset.open); return; }
+  if((el = t.closest('[data-mod]'))){ S.mod = el.dataset.mod; refresh(); $('screen').scrollTo({top:$('modChips').offsetTop-60}); return; }
+  if((el = t.closest('[data-type]'))){ S.type = el.dataset.type; refresh(); return; }
+  if(t.closest('[data-reset]')){ S.mod='all'; S.type='all'; S.q=''; $('q').value=''; $('searchWrap').classList.remove('has'); refresh(); return; }
+  if(t.closest('[data-unlock]')){ openUnlock(); return; }
+  if(t.closest('[data-buy]')){ wa(BUY_MSG); return; }
+  if(t.closest('[data-close]')){ closeSheet(); return; }
+  if((el = t.closest('[data-gomod]'))){ S.mod = el.dataset.gomod; S.type='all'; closeSheet(); refresh(); setTimeout(()=>$('screen').scrollTo({top:$('modChips').offsetTop-60}),320); return; }
+  if((el = t.closest('[data-ck]'))){ toggleCk(+el.dataset.ck); return; }
+  if((el = t.closest('[data-kind]'))){ S.sched.kind = el.dataset.kind; renderSched(); return; }
+  if((el = t.closest('[data-date]'))){ S.sched.date = +el.dataset.date; renderSched(); return; }
+  if((el = t.closest('[data-time]'))){ S.sched.time = el.dataset.time; renderSched(); return; }
+  if((el = t.closest('[data-sstep]'))){
+    const n = +el.dataset.sstep;
+    if(n===4) S.sched.code = 'SIM-' + Math.random().toString(36).slice(2,7).toUpperCase();
+    if(n===3 && S.sched.scan!=='ok') S.sched.scan='idle';
+    S.sched.step = n; renderSched(); return;
+  }
+  if(t.closest('[data-sscan]')){ startScan(); return; }
+  if(t.closest('[data-sreset]')){ openSched(true); return; }
+});
+document.addEventListener('keydown', e => {
+  if(e.key==='Escape' && $('sheet').classList.contains('open')) closeSheet();
+  if((e.key==='Enter'||e.key===' ') && e.target.matches && e.target.matches('.card')){ e.preventDefault(); openItem(+e.target.dataset.open); }
+});
+$('backdrop').addEventListener('click', closeSheet);
+$('shClose').addEventListener('click', closeSheet);
+$('themeBtn').addEventListener('click', () => {
+  const p = $('phone'); p.dataset.theme = p.dataset.theme==='dark'?'light':'dark'; setThemeIcon();
+});
+$('chatBtn').addEventListener('click', () => wa('Olá! Tenho uma dúvida sobre o guia de visto para Portugal.'));
+$('waFab').addEventListener('click', () => wa('Olá! Tenho uma dúvida sobre o guia de visto para Portugal.'));
+$('srcBtn').addEventListener('click', openSources);
+$('heroBtn').addEventListener('click', openUnlock);
+$('endBtn').addEventListener('click', openUnlock);
+$('procFab').addEventListener('click', openProcess);
+$('actSched').addEventListener('click', () => openSched(true));
+$('actMods').addEventListener('click', openModules);
+$('actCheck').addEventListener('click', openChecklist);
+$('q').addEventListener('input', e => {
+  S.q = e.target.value; $('searchWrap').classList.toggle('has', !!S.q); renderList();
+});
+$('clearQ').addEventListener('click', () => { $('q').value=''; S.q=''; $('searchWrap').classList.remove('has'); renderList(); $('q').focus(); });
+
+refresh();
+</script>
+</body>
+</html>
